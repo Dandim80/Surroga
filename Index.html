@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -52,6 +52,7 @@
             border-radius: 4px;
             background-color: #e9ffe9;
             color: #333;
+            text-align: center;  /* Centered text */
         }
         h2 {
             margin-top: 0;
@@ -69,94 +70,64 @@
     </style>
 </head>
 <body>
-
-<header>
-    <h1>Calcolo Risparmio Mutuo</h1>
-    <p>Scopri quanto puoi risparmiare passando da un mutuo a tasso variabile a uno a tasso fisso.</p>
-</header>
-
-<div class="container">
-    <label for="tassoVariabile">Tasso variabile (%): <span class="note">(se non conosciuto verrà inserito un tasso medio attuale 4.5%)</span></label>
-    <input type="number" id="tassoVariabile" placeholder="4.50">
-
-    <label for="rata">Rata mensile (€): <span style="color:red;">*</span></label>
-    <input type="number" id="rata" placeholder="700" required>
-
-    <label for="durata">Durata (anni residui del mutuo): <span style="color:red;">*</span> <span class="note">(inserire la durata degli anni residui)</span></label>
-    <input type="number" id="durata" placeholder="20" required>
-
-    <button onclick="calcolaRisparmio()">Calcola Risparmio</button>
-
-    <div class="result" id="risultato"></div>
-
-    <div class="whatsapp-text" id="whatsappText" style="display:none;">
-        <p>Per una valutazione della fattibilità della rinegoziazione del mutuo clicca sul tasto invia WhatsApp.</p>
-        <button id="whatsappButton">Invia a WhatsApp</button>
+    <header>
+        <h1>Calcolo Risparmio Mutuo</h1>
+        <p>Scopri quanto puoi risparmiare rinegoziando il tuo mutuo.</p>
+    </header>
+    <div class="container">
+        <label for="tassoVariabile">Tasso di interesse attuale (%): <span class="note">(se non conosciuto verrà inserito un tasso medio attuale 4.5%)</span></label>
+        <input type="number" id="tassoVariabile" placeholder="4.50">
+        <label for="rata">Rata mensile (€): <span style="color:red;">*</span></label>
+        <input type="number" id="rata" placeholder="700" required>
+        <label for="durata">Durata (anni residui del mutuo): <span style="color:red;">*</span> <span class="note">(inserire la durata degli anni residui)</span></label>
+        <input type="number" id="durata" placeholder="20" required>
+        <button onclick="calcolaRisparmio()">Calcola Risparmio</button>
+        <div class="result" id="risultato"></div>
+        <div class="whatsapp-text" id="whatsappText" style="display:none;">
+            <p>Per una valutazione della fattibilità della rinegoziazione del mutuo clicca sul tasto invia WhatsApp.</p>
+            <button id="whatsappButton">Invia a WhatsApp</button>
+        </div>
     </div>
-</div>
-
-<script>
-    function calcolaRisparmio() {
-        // Prendi i valori inseriti
-        const tassoVariabile = parseFloat(document.getElementById('tassoVariabile').value) || 4.50;
-        const tassoFisso = 3.00; // Tasso fisso predefinito
-        const rata = parseFloat(document.getElementById('rata').value);
-        const durata = parseInt(document.getElementById('durata').value);
-
-        // Controlla se i campi obbligatori sono stati riempiti
-        if (isNaN(rata) || isNaN(durata) || durata <= 0 || rata <= 0) {
-            alert("Si prega di inserire valori validi per la rata mensile e la durata del mutuo.");
-            return;
+    <script>
+        function calcolaRisparmio() {
+            const tassoVariabile = parseFloat(document.getElementById('tassoVariabile').value) || 4.50;
+            const tassoFisso = 3.00; // Tasso fisso predefinito
+            const rata = parseFloat(document.getElementById('rata').value);
+            const durata = parseInt(document.getElementById('durata').value);
+            if (isNaN(rata) || isNaN(durata) || durata <= 0 || rata <= 0) {
+                alert("Si prega di inserire valori validi per la rata mensile e la durata del mutuo.");
+                return;
+            }
+            const nPagamenti = durata * 12;
+            const totaleVariabile = rata * nPagamenti;
+            const raggioVariabile = tassoVariabile / 100 / 12;
+            const capitaleVariabile = rata * ((Math.pow(1 + raggioVariabile, nPagamenti) - 1) / (raggioVariabile * Math.pow(1 + raggioVariabile, nPagamenti)));
+            const raggioFisso = tassoFisso / 100 / 12;
+            const rataFissa = capitaleVariabile * (raggioFisso * Math.pow(1 + raggioFisso, nPagamenti)) / (Math.pow(1 + raggioFisso, nPagamenti) - 1);
+            const totaleFisso = rataFissa * nPagamenti;
+            const differenzaMensile = rataFissa - rata;
+            const differenzaAnnuale = differenzaMensile * 12;
+            const risparmio = totaleVariabile - totaleFisso;
+            const risultatoDiv = document.getElementById('risultato');
+            risultatoDiv.innerHTML = `<strong>Risultato del calcolo:</strong><br>
+                - Totale pagato con l'attuale mutuo: €${Math.round(totaleVariabile).toLocaleString('it-IT')}<br>
+                - Totale pagato con il mutuo rinegoziato con tasso fisso: €${Math.round(totaleFisso).toLocaleString('it-IT')}<br>
+                - Risparmio totale: €${Math.round(risparmio).toLocaleString('it-IT')}<br>
+                - Differenza mensile tra vecchio mutuo e nuovo mutuo: €${Math.round(differenzaMensile).toLocaleString('it-IT')}<br>
+                - Differenza annuale tra rata vecchio mutuo e nuovo mutuo: €${Math.round(differenzaAnnuale).toLocaleString('it-IT')}<br><br>
+                <strong>Spiegazione del risparmio:</strong><br>
+                Il risparmio è calcolato con un nuovo mutuo a tasso fisso. Con il tasso fisso si ottiene una maggiore sicurezza nel lungo periodo, riducendo l'impatto di eventuali aumenti futuri dei tassi di interesse.<br>
+                La domanda di rinegoziazione delle condizioni del mutuo è subordinata all'analisi del credito.`;
+            const whatsappText = document.getElementById('whatsappText');
+            whatsappText.style.display = 'block';
+            document.getElementById('whatsappButton').onclick = () => inviaWhatsApp(tassoVariabile, rata, durata, totaleVariabile, totaleFisso, risparmio, differenzaMensile, differenzaAnnuale);
         }
-
-        const nPagamenti = durata * 12;
-
-        // Calcola il totale pagato con il mutuo variabile
-        const totaleVariabile = rata * nPagamenti;
-
-        // Calcola il capitale per il mutuo variabile
-        const raggioVariabile = tassoVariabile / 100 / 12;
-        const capitaleVariabile = rata * ((Math.pow(1 + raggioVariabile, nPagamenti) - 1) / (raggioVariabile * Math.pow(1 + raggioVariabile, nPagamenti)));
-
-        // Calcola la rata mensile per il mutuo fisso
-        const raggioFisso = tassoFisso / 100 / 12;
-        const rataFissa = capitaleVariabile * (raggioFisso * Math.pow(1 + raggioFisso, nPagamenti)) / (Math.pow(1 + raggioFisso, nPagamenti) - 1);
-        const totaleFisso = rataFissa * nPagamenti;
-
-        // Calcola la differenza mensile tra la rata variabile e quella fissa
-        const differenzaMensile = rataFissa - rata;
-        // Calcola la differenza annuale
-        const differenzaAnnuale = differenzaMensile * 12;
-
-        // Calcola il risparmio
-        const risparmio = totaleVariabile - totaleFisso;
-
-        // Mostra il risultato
-        const risultatoDiv = document.getElementById('risultato');
-        risultatoDiv.innerHTML = `<strong>Risultato del calcolo:</strong><br>
-                                   - Totale pagato con mutuo variabile: €${totaleVariabile.toFixed(2)}<br>
-                                   - Totale pagato con mutuo fisso: €${totaleFisso.toFixed(2)}<br>
-                                   - Risparmio totale: €${risparmio.toFixed(2)}<br>
-                                   - Differenza mensile tra rata fissa e rata variabile: €${differenzaMensile.toFixed(2)}<br>
-                                   - Differenza annuale tra rata fissa e rata variabile: €${differenzaAnnuale.toFixed(2)}<br>
-                                   <br>
-                                   <strong>Spiegazione del risparmio:</strong><br>
-                                   Passando a un mutuo a tasso fisso, si ottiene una maggiore sicurezza nel lungo termine, 
-                                   riducendo l'impatto di eventuali aumenti futuri dei tassi di interesse.<br>
-                                   La domanda di rinegoziazione delle condizioni del mutuo è subordinata all'analisi del credito.`;
-
-        // Mostra il testo e il pulsante di invio su WhatsApp
-        const whatsappText = document.getElementById('whatsappText');
-        whatsappText.style.display = 'block';
-        document.getElementById('whatsappButton').onclick = () => inviaWhatsApp(tassoVariabile, rata, durata, totaleVariabile, totaleFisso, risparmio, differenzaMensile, differenzaAnnuale);
-    }
-
-    function inviaWhatsApp(tassoVariabile, rata, durata, totaleVariabile, totaleFisso, risparmio, differenzaMensile, differenzaAnnuale) {
-        const messaggio = `Calcolo Risparmio Mutuo\n\nTasso variabile: ${tassoVariabile}%\nRata mensile: €${rata}\nDurata: ${durata} anni\nTotale pagato con mutuo variabile: €${totaleVariabile.toFixed(2)}\nTotale pagato con mutuo fisso: €${totaleFisso.toFixed(2)}\nRisparmio totale: €${risparmio.toFixed(2)}\nDifferenza mensile: €${differenzaMensile.toFixed(2)}\nDifferenza annuale: €${differenzaAnnuale.toFixed(2)}\n\nPuoi aiutarmi a risparmiare?`;
-        const url = `https://api.whatsapp.com/send?phone=393346395727&text=${encodeURIComponent(messaggio)}`;
-        window.open(url, '_blank');
-    }
-</script>
-
+        
+        function inviaWhatsApp(tassoVariabile, rata, durata, totaleVariabile, totaleFisso, risparmio, differenzaMensile, differenzaAnnuale) {
+            const messaggio = `Calcolo Risparmio Mutuo\n\nTasso di interesse attuale: ${tassoVariabile}%\nRata mensile: €${rata}\nDurata: ${durata} anni\nTotale pagato con l'attuale mutuo: €${Math.round(totaleVariabile).toLocaleString('it-IT')}\nTotale pagato con il mutuo rinegoziato con tasso fisso: €${Math.round(totaleFisso).toLocaleString('it-IT')}\nRisparmio totale: €${Math.round(risparmio).toLocaleString('it-IT')}\nDifferenza mensile: €${Math.round(differenzaMensile).toLocaleString('it-IT')}\nDifferenza annuale: €${Math.round(differenzaAnnuale).toLocaleString('it-IT')}\n\nPuoi aiutarmi a risparmiare?`;
+            const url = `https://api.whatsapp.com/send?phone=393346395727&text=${encodeURIComponent(messaggio)}`;
+            window.open(url, '_blank');
+        }
+    </script>
 </body>
 </html>
